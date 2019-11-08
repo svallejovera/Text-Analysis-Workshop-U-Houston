@@ -8,13 +8,13 @@ We will be working with the spaCyR and quanteda packages. spaCyR is an
 > processing'' Python library from <http://spacy.io>.
 
 As such, you need to first install Pynthon in your computer, then
-install spaCy for Python, and then install spacyR in R to link back to
+install spaCy for Python, and then install spaCyR in R to link back to
 the Python library.
 
-### Installing spacyR in Windows
+### Installing spaCyR
 
 **The instructions to install spacyR in Windows can be found
-[here](https://github.com/quanteda/spacyr/blob/master/inst/doc/WINDOWS.md)**
+[here](https://github.com/quanteda/spacyr/blob/master/README.md)**
 
 *Sorry Windows users, I am not familiar with that operating system and
 have not installed spaCyR in Windows before. It is not a straightforward
@@ -22,9 +22,9 @@ process so you should follow closely the instructions.*
 
 ### Installing spacyR in Mac
 
-*The instructions to install spaCyR for Mac are taken almost verbatim
-from
-[here](https://github.com/quanteda/spacyr/blob/master/inst/doc/MAC.md)*
+The instructions to install spaCyR for Mac detailed below were written in 2018. Since then, installing spaCyR has become more streamlined. **Updated instructions to install spaCyR in Mac can be found [here](https://github.com/quanteda/spacyr/blob/master/README.md)** 
+
+You still need to install Python in your computer and I am *not* a fan of miniconda. If you run into trouble installing spaCyR following the updated instructions, you can always follow these:
 
 1.  Install x-code from the Terminal
 
