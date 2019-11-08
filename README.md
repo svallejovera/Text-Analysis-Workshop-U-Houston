@@ -1,13 +1,12 @@
 # Introduction to Text Analysis Workshop 
-# (University of Houston)
 
 Text-analysis is a heavily computer-dependent task. As such, this introduction will be an applied approach of text-analysis through the use of **quanteda** and **spaCyR**, two R packages used for content and text analysis. To take full advantage of the workshop, it is recommended that attendees have a working knowledge of R (but all are welcome!).  
 
-We will learn the basic three-step process needed to setup research based on text: 1) creating a corpus from texts, 2) extracting quantitative features from the corpus into a matrix, and 3) using statistical methods to analyze this matrix and make inferences about the texts or the authors of the texts. 
+We will learn the basic three-step process needed to set up research based on text: 1) creating a corpus from texts, 2) extracting quantitative features from the corpus into a matrix, and 3) using statistical methods to analyze this matrix and make inferences about the texts or the authors of the texts. 
 
 Text-analysis opens the possibility to analyze a range of data that is plentiful and readily available, especially in politics. Politicians LOVE to speak. Bureaucrats LOVE to type. And we LOVE data. While computer-intensive, text-analysis is intuitive and, let's be honest, everybody loves a word cloud.<sup id="a1">[1](#f1)</sup> 
 
-### Instructions to install the requiered software
+## Instructions to install the required software
 
 From the [quanteda](https://tutorials.quanteda.io) homepage:
 
@@ -29,7 +28,7 @@ The instructions for installing spaCyR can be found [here](https://github.com/va
 
 ### Extra packages
 
-We will also use the *readtext* package to read in different types of text data in this tutorials. Again, you can do this using RStudio menu (Tools > Install Packages), or executing the following command.
+We will also use the *readtext* package to read in different types of text data in this tutorial. Again, you can do this using RStudio menu (Tools > Install Packages), or executing the following command.
 
 ```
 install.packages("readtext")
