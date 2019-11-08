@@ -1,6 +1,6 @@
 ## Introduction to Text Analysis Workshop (University of Houston)
 
-Text-analysis is a heavily computer-dependent task. As such, this introduction will be an applied approach of text-analysis through the use of **quanteda** and **spaCyR**, R packages used for content and text analysis. To take full advantage of the workshop, it is recommended that attendees have a working knowledge of R (but all are welcome!).  
+Text-analysis is a heavily computer-dependent task. As such, this introduction will be an applied approach of text-analysis through the use of **quanteda** and **spaCyR**, two R packages used for content and text analysis. To take full advantage of the workshop, it is recommended that attendees have a working knowledge of R (but all are welcome!).  
 
 We will learn the basic three-step process needed to setup research based on text: 1) creating a corpus from texts, 2) extracting quantitative features from the corpus into a matrix, and 3) using statistical methods to analyze this matrix and make inferences about the texts or the authors of the texts. 
 
