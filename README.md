@@ -46,7 +46,7 @@ To make things look pretty, we will use the *ggplot2* package that can be instal
 install.packages("ggplot2")
 ```
 
-Finally, [stringr](https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html) is a great and handy package when it comes to dealing with character variables, something you will be doing often when handling text data. I have uploaded a [reference guide](https://github.com/vallejo086/Text-Analysis-Workshop/blob/master/Sanchez%20(2013)%20-%20Handling%20and%20Processing%20Strings%20in%20R.pdf) by Gastón Sánchez. He has a newer online version which you can check out [here](http://www.gastonsanchez.com/r4strings/). You can install *stringr* from inside RStudio, from the Tools > Install Packages, or executing a command.
+Finally, [stringr](https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html) is a great and handy package when it comes to dealing with character variables, something you will be doing often when handling text data. I have uploaded a [reference guide](https://github.com/vallejo086/Text-Analysis-Workshop-U-Houston/blob/master/Sanchez%20(2013)%20-%20Handling%20and%20Processing%20Strings%20in%20R.pdf) by Gastón Sánchez. He has a newer online version which you can check out [here](http://www.gastonsanchez.com/r4strings/). You can install *stringr* from inside RStudio, from the Tools > Install Packages, or executing a command.
 
 ```
 install.packages("stringr")
