@@ -1,4 +1,5 @@
-## Introduction to Text Analysis Workshop (University of Houston)
+# Introduction to Text Analysis Workshop 
+# (University of Houston)
 
 Text-analysis is a heavily computer-dependent task. As such, this introduction will be an applied approach of text-analysis through the use of **quanteda** and **spaCyR**, two R packages used for content and text analysis. To take full advantage of the workshop, it is recommended that attendees have a working knowledge of R (but all are welcome!).  
 
