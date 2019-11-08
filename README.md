@@ -4,7 +4,7 @@ Text-analysis is a heavily computer-dependent task. As such, this introduction w
 
 We will learn the basic three-step process needed to setup research based on text: 1) creating a corpus from texts, 2) extracting quantitative features from the corpus into a matrix, and 3) using statistical methods to analyze this matrix and make inferences about the texts or the authors of the texts. 
 
-Text-analysis opens the possibility to analyze a range of data that is plentiful and readily available, especially in politics. Politicians LOVE to speak. Bureaucrats LOVE to type. And we LOVE data. While computer-intensive, text-analysis is intuitive and, let's be honest, everybody loves a word-cloud. 
+Text-analysis opens the possibility to analyze a range of data that is plentiful and readily available, especially in politics. Politicians LOVE to speak. Bureaucrats LOVE to type. And we LOVE data. While computer-intensive, text-analysis is intuitive and, let's be honest, everybody loves a word-cloud.[^1] 
 
 ### Instructions to install the requiered software
 
@@ -56,4 +56,7 @@ install.packages("stringr")
 As we get closer to the workshop, I will upload the dataset we will be using for the workshop. I will upload both the code I will use to create the dataset (in case you are interested in practicing your web scrapping) and the dataset itself (if you do not care about web scrapping). I will also make available all the code we will use in the workshop.   
 
 
-> :warning: If you use the quanteda package in your reserach, please cite: Benoit, Kenneth, Kohei Watanabe, Haiyan Wang, Paul Nulty, Adam Obeng, Stefan Müller, and Akitaka Matsuo. 2018 “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software 3(30), 774. https://doi.org/10.21105/joss.00774.
+> :warning: If you use the quanteda package in your research, please cite:
+> Benoit, Kenneth, Kohei Watanabe, Haiyan Wang, Paul Nulty, Adam Obeng, Stefan Müller, and Akitaka Matsuo. 2018 “quanteda: An R package for the quantitative analysis of textual data.” Journal of Open Source Software 3(30), 774. https://doi.org/10.21105/joss.00774.
+
+[^1]: Word clouds are silly.
