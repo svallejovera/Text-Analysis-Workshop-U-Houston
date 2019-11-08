@@ -20,11 +20,11 @@ First, you need to have **quanteda** installed. You can do this from inside RStu
 install.packages("quanteda")
 ```
 
-Note that on **Windows** platforms, it is also recommended that you install the [RTools suite](https://cran.r-project.org/bin/windows/Rtools/), and for **OS X** that you install [XCode]() from the App Store.
+Note that on **Windows** platforms, it is also recommended that you install the [RTools suite](https://cran.r-project.org/bin/windows/Rtools/), and for **OS X** that you install [XCode](https://apps.apple.com/gb/app/xcode/id497799835?mt=12) from the App Store.
 
 ### spaCyR (for R)
 
-The instructions for installing spaCyR can be found [here](https://github.com/vallejo086/Text-Analysis-Workshop/blob/master/Installing%20spaCyR/Text_Analysis_Prep.md).
+The instructions for installing spaCyR can be found [here](https://github.com/vallejo086/Text-Analysis-Workshop-U-Houston/blob/master/Installing%20spaCyR/Installing_spaCyR.md).
 
 ### Extra packages
 
