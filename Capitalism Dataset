@@ -1,0 +1,174 @@
+#==============================================================================
+# Capitalism: Sample corpus for Text Analysis Workshop
+# Author: Sebastián Vallejo 
+#==============================================================================
+
+rm(list=ls(all=TRUE))
+
+# setup
+library(tweetscores)
+library(ROAuth)
+library(twitteR)
+library(rtweet)
+
+setwd("/Users/sebastian/Box Sync/TW_credentials")
+load("my_oauth.Rdata")
+
+setwd("/Users/sebastian/Box Sync/UH/Text Analysis Workshop/Twits")
+
+#### Search for terms ####
+
+# capitalism_1 <- search_tweets(q = "capitalism", n = 100000000, include_rts = T, retryonratelimit = TRUE)
+# 
+# capitalism_2 <- search_tweets(q = "capitalism", n = 10000000, include_rts = T, retryonratelimit = TRUE)
+# 
+# capitalism_3 <- search_tweets(q = "capitalism", n = 10000000, include_rts = T, retryonratelimit = TRUE)
+# 
+# save(capitalism_1,capitalism_2, capitalism_3, file="capitalism_nov_30.Rdata")
+# 
+# capitalism_full <- rbind.data.frame(capitalism_1, capitalism_2, capitalism_3)
+# 
+# capitalism_full <- capitalism_full[!duplicated(capitalism_full$status_id),]
+# 
+# save(capitalism_full, file="data_workshop_raw.Rdata")
+# 
+
+#### Clean the data ####
+
+capitalism_full <- capitalism_full[!duplicated(capitalism_full$status_id),]
+
+#### Only need RTs since I am interested in networks ####
+
+capitalism_RT <- capitalism_full[capitalism_full$is_retweet == T,]
+
+#### Load the net ####
+
+library(igraph)
+
+cap_net <- as.matrix(capitalism_RT[c(4,55)])
+
+all.net <- graph.empty()
+all.net <- add.vertices(all.net, length(unique(c(cap_net))),name=as.character(unique(c(cap_net))))
+all.net <- add.edges(all.net, t(cap_net))
+E(all.net)$text <- capitalism_RT$text
+E(all.net)$tweetidT <- capitalism_RT$status_id
+E(all.net)$tweetidRT <- capitalism_RT$retweet_status_id
+E(all.net)$friendsT <- capitalism_RT$friends_count
+E(all.net)$followersT <- capitalism_RT$followers_count
+E(all.net)$friendsRT <- capitalism_RT$retweet_friends_count
+E(all.net)$followersRT <- capitalism_RT$retweet_followers_count
+E(all.net)$timeRT <- capitalism_RT$retweet_created_at
+E(all.net)$timeT <- capitalism_RT$created_at
+E(all.net)$verifiedRT <- capitalism_RT$verified
+E(all.net)$verifiedT <- capitalism_RT$retweet_verified
+E(all.net)$nameauth <- capitalism_RT$retweet_screen_name
+E(all.net)$namehub <- capitalism_RT$screen_name
+E(all.net)$device <- capitalism_RT$source
+E(all.net)$likeRT <- capitalism_RT$retweet_favorite_count
+E(all.net)$retweetRT <- capitalism_RT$retweet_retweet_count
+#V(all.net)$ids <- ids[,2]
+summary(all.net) 
+
+#### Trim the network ####
+
+## Using the degree of the network we may trim the net ##
+
+# Out- and in-degree to select nodes
+outd<-degree(all.net, mode="out")
+ind<-degree(all.net, mode="in")
+
+# Load the original degrees since we will be using that information later on
+V(all.net)$init.outd<-outd
+V(all.net)$init.ind <-ind
+
+# Let's keep the nodes with degrees larger than our cutpoint values
+select.edges<-which(outd>3 | ind>=1)
+net <- induced.subgraph(graph=all.net,vids=select.edges)
+
+# Let's eliminate unconnected users 
+cut <- clusters(net)$membership
+
+# Make sure the largest cluster is the one you want! 
+select.edges<-which(cut==1)
+net <- induced.subgraph(graph=net,vids=select.edges)
+
+# Check your network before running the layout and community detection
+summary(net)
+
+# Now we are ready to estimate the Layout and Community
+my.com.fast <- walktrap.community(net)
+system.time(l <- layout_with_fr(net, grid = c("nogrid")))
+
+# Load the variables to the nodes:
+V(net)$membership<-my.com.fast$membership
+V(net)$l1<-l[,2]
+V(net)$l2<-l[,1]
+V(net)$outd<-degree(net, mode="out")
+V(net)$ind<-degree(net, mode="in")
+
+outd<-degree(net, mode="out")
+ind<-degree(net, mode="in")
+
+# I get more than 1000 communitie (pretty standard) so no point in graphing 
+# it now but we can identify top nodes just to see what is going on:
+
+# Make a table of the Most retweeted authorities
+d <- as.data.frame(table(E(net)$nameauth))
+d <- d[order(d$Freq, decreasing=T), ]
+names(d) <- c("User","Tweets")
+head(d) # Is that HULK??? Yes, yes it is... 
+
+# Make a table of the Most retweeted hubs
+d <- as.data.frame(table(E(net)$namehub))
+d <- d[order(d$Freq, decreasing=T), ]
+names(d) <- c("User","Tweets")
+head(d)
+
+# Let's see to what community each belongs:
+d<-data.frame(ind,my.com.fast$membership)
+rownames(d) <- names(ind) 
+colnames(d) <- c("ind","membership")
+d <- d[order(d$ind, decreasing=T), ]
+head(d, 25) 
+# So 6 is obviously anti capitalism 
+# 9 is pro... 
+# 1 is labour from England!
+# 3 is POC anti capitalism
+
+### Let's keep 3,6,9 just to see how they look. They also
+### comprise 60% of the network:
+
+select.edges <- which(V(net)$membership==3|V(net)$membership==6|V(net)$membership==9)
+mem.net <- induced.subgraph(graph=net,vids=select.edges)
+
+pdf(file = "Network Capitalism.pdf", 40, 40, pointsize=12, compress=TRUE)
+plot.igraph(mem.net, 
+            layout=cbind(V(mem.net)$l1,V(mem.net)$l2), 
+            vertex.size=log(V(mem.net)$ind+1),
+            vertex.label = ifelse(log(V(mem.net)$ind+1) > 5, V(mem.net)$name, NA),
+            vertex.label.color="black", vertex.color=V(mem.net)$membership, 
+            vertex.frame.color=V(mem.net)$membership, edge.width= .1, 
+            edge.arrow.size=.04, edge.curved=TRUE)
+dev.off()
+
+### Let's make this a dataframe 
+data_capitalism <- as_long_data_frame(mem.net)
+
+## Eliminate dup tweets and useless vars
+data_capitalism <- data_capitalism[!duplicated(data_capitalism$text),]
+data_capitalism <- data_capitalism[c(3,8,9,10,14,17,18,30,34)]
+
+data_capitalism$mem_name[data_capitalism$to_membership == 3] <- "POC Anti-Capitalism"
+data_capitalism$mem_name[data_capitalism$to_membership == 6] <- "White Anti-Capitalism"
+data_capitalism$mem_name[data_capitalism$to_membership == 9] <- "Capitalism"
+data_capitalism$mem_name_dummy[data_capitalism$to_membership == 3] <- "Anti-Capitalism"
+data_capitalism$mem_name_dummy[data_capitalism$to_membership == 6] <- "Anti-Capitalism"
+data_capitalism$mem_name_dummy[data_capitalism$to_membership == 9] <- "Capitalism"
+
+## Clean some of the text
+library(stringr)
+data_capitalism$text_clean <- str_remove(data_capitalism$text, "http.*")
+  
+## DONE! 
+save(data_capitalism, file = "data_capitalism.Rdata")
+  
