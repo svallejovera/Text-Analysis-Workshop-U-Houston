@@ -34,7 +34,7 @@ setwd("/Users/sebastian/Box Sync/UH/Text Analysis Workshop/Twits")
 # 
 
 #### Clean the data ####
-
+load("data_workshop_raw.Rdata")
 capitalism_full <- capitalism_full[!duplicated(capitalism_full$status_id),]
 
 #### Only need RTs since I am interested in networks ####
@@ -57,8 +57,8 @@ E(all.net)$friendsT <- capitalism_RT$friends_count
 E(all.net)$followersT <- capitalism_RT$followers_count
 E(all.net)$friendsRT <- capitalism_RT$retweet_friends_count
 E(all.net)$followersRT <- capitalism_RT$retweet_followers_count
-E(all.net)$timeRT <- capitalism_RT$retweet_created_at
-E(all.net)$timeT <- capitalism_RT$created_at
+E(all.net)$timeRT <- as.Date.POSIXct(capitalism_RT$retweet_created_at, tz="UTC")
+E(all.net)$timeT <- as.Date.POSIXct(capitalism_RT$created_at)
 E(all.net)$verifiedRT <- capitalism_RT$verified
 E(all.net)$verifiedT <- capitalism_RT$retweet_verified
 E(all.net)$nameauth <- capitalism_RT$retweet_screen_name
@@ -168,7 +168,8 @@ data_capitalism$mem_name_dummy[data_capitalism$to_membership == 9] <- "Capitalis
 ## Clean some of the text
 library(stringr)
 data_capitalism$text_clean <- str_remove(data_capitalism$text, "http.*")
-  
+data_capitalism$date_created <- as.Date.numeric(data_capitalism$timeRT)
+
 ## DONE! 
 save(data_capitalism, file = "data_capitalism.Rdata")
   
