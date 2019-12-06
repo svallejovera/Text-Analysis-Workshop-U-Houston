@@ -1,5 +1,5 @@
 ---
-title: "Intro to Text Analysis (Part 1)"
+title: "Intro to Text Analysis"
 author: "Sebastián Vallejo"
 date: "12/5/2019"
 output: 
@@ -253,6 +253,7 @@ cap_toks_stop <- tokens_remove(cap_toks,
                               stopwords(language = "en"),
                               padding = F)
 cap_toks_stop <- tokens_remove(cap_toks_stop, "amp")
+cap_toks_stop <- tokens_remove(cap_toks_stop, "capitalism")
 cap_coll <- textstat_collocations(cap_toks_stop)
 head(cap_coll, 20)
 ```
@@ -474,7 +475,7 @@ head(cap_sentimentNRC, 15)
 head(cap_sentimentGI, 15)
 ```
 
-Both produce dataframe objects that can later be manipulated to conduct more in-depth analysis. Let's see how "anger" and "joy" language varies across groups and time (XXX maybe something else) using the NRC dictionary.
+Both produce dataframe objects that can later be manipulated to conduct more in-depth analysis. Let's see how "anger" and "joy" language varies across groups and time using the NRC dictionary.
 
 ```{r}
 
@@ -511,7 +512,7 @@ As a general recommendation, it is always good practice to explore the dictionar
 
 # Analyzing a corpus: Topic models and document distance
 
-Topics models were primarily developed to summarize unstructured text, use words within documents to infer their topic, and as a form of dimension reduction. It allows social scientists to use topics as a form of measurement, as were are often interested in how observed covariates drive trends in language. For example, 
+Topics models were primarily developed to summarize unstructured text, use words within documents to infer their topic, and as a form of dimension reduction. It allows social scientists to use topics as a form of measurement, as we are often interested in how observed covariates drive trends in language. For example, 
 
 - Political attention patterns in Senate floor speeches [(Quinn et al. 2010)](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-5907.2009.00427.x.)
 - Attention senators allocate to press releases [(Grimmer 2010)](https://www.cambridge.org/core/journals/political-analysis/article/bayesian-hierarchical-topic-model-for-political-texts-measuring-expressed-agendas-in-senate-press-releases/74F30D05C220DB198F21FF5127EB7205). 
@@ -525,18 +526,7 @@ Topic models are a broad class of Bayesian generative models that encode problem
 
 We can take our corpus and turn it into a matrix that reflects this concept. We call it a document-term matrix (*dtm*). 
 
-\begin{table}[]
-\centering
-\caption{Document-term Matrix X}
-\begin{tabular}{c|c|c|c|c}
-\hline
-  & $W_1$ & $W_2$ & $W_3$ & $W_m$ \\ \hline
-$D_1$ & 1 & 0 & 4 & 5 \\ \hline
-$D_2$ & 2 & 1 & 0 & 0 \\ \hline
-$D_3$ & 0 & 4 & 1 & 2 \\ \hline
-$D_n$ & 1 & 1 & 3 & 0 \\ \hline
-\end{tabular}
-\end{table}
+ 
 
 - A corpus of $n$ documents $D_1$, $D_2$, $D_3$ ... $D_n$
 - Vocabulary of $m$ words $W_1$, $W_2$, $W_3$ ... $W_m$
@@ -581,4 +571,306 @@ LDA estimates the distribution over words for each topic, and the proportion of 
 - $\beta$ --> topic-word density. higher $\beta$ means topics have more words, lower $\beta$ means topics have fewer words.
 - Number of topics --> this is specified in advance, or can be chosen to optimize model fit (we will get back to this point). The "statistically optimal" topic count is usually too high for the topics to be interpretable or useful. 
 
+
+### Structural Topic Models (STM)
+
+To apply (and visualize) LDA, we are going to be using an extension of LDA known as Structural Topic Models (STM). 
+
+$$ STM = LDA + Metadata $$
+  
+  STM provides two ways to include contextual information to "guide" the estimation of the model. First, topic prevalence can vary by metadata (e.g. Republicans talk about military issues more than Democrats). Second, topic content can vary by metadata (e.g. Republicans talk about military issues differently from Democrats). 
+
+We can run STM using the `stm` package. The `stm` package includes the complete workflow (i.e. from raw text to figures), and if you are planning to use it in the future I highly encourage you to check [this](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf) and [this](https://www.jstor.org/stable/pdf/24363543.pdf?casa_token=b_rJjIOUUScAAAAA:KXNQeVBQMzB7-kIEhl-1qo6uyD7vHvRTHhMinMdZVT6G3M3olzKzPv00XMJQd7mRw9Nm9UqJDmWHv3N_0cXBmbdeu2XZv8-jy1RYxvpm7Ab3WEOmApXP). `stm()` takes our *dfm* and produces topics. If we do not specify any prevalence terms, then it will estimate an LDA. Since this is a Bayesian approach, it is recommended you set a seed value for future replication. We also need to set $K$ number of topics. How many topics are the right number of topics? There is no good number. Too many pre-specified topics and the categories might be meaningless. Too few, and you might be piling together two or more topics. Note that changes to a) the number of topics, b) the prevalence term, c) the omitted words, d) the seed value, can (greatly) change the outcome. Here is where validation becomes crucial (for a review see [Wilkerson and Casas 2017](https://www.researchgate.net/profile/Andreu_Casas/publication/317140610_Large-Scale_Computerized_Text_Analysis_in_Political_Science_Opportunities_and_Challenges/links/59285e6f0f7e9b9979a35ec4/Large-Scale-Computerized-Text-Analysis-in-Political-Science-Opportunities-and-Challenges.pdf)).
+
+Using our dataset, I will use stm to estimate the topics surrounding "capitalism" on Twitter. As my prevalence term, I add the position of each authority. I set my number of topics at 10 (but with a corpus this big I should probably set it at ~30 and work my way up from there). 
+
+```{r results = 'hide'}
+dfm_toks_stem <- dfm(cap_toks_stem)
+# After trimming, some documents were left with no tokens so I will eliminate those before running my model:
+dfm_toks_sub <- dfm_subset(dfm_toks_stem, ntoken(dfm_toks_stem) > 0)
+cap_TM <- stm(dfm_toks_sub, K = 10, seed = 1984,
+              prevalence = ~left_right,
+              init.type = "Spectral")
+```
+
+The nice thing about the `stm()` function is that it allows us to see in "real-time" what is going on within the black box. We can summarize the process in the following way (this is similar to a collapsed Gibbs sampling, which the `stm()` function sort of uses):
+
+```
+1. Go through each document, and randomly assign each word in the document to one of the topics $\displaystyle t\in k$.
+
+2. Notice that this random assignment already gives both topic representations of all the documents and word distributions of all the topics (albeit not very good ones).
+
+3. So to improve on them, for each document $\displaystyle W$ do the following:
+  + Go through each word $\displaystyle w$ in $\displaystyle W$
+  ++ And for each topic $\displaystyle t$, compute two things: 
+  +++ $\displaystyle p(t|W)$ = the proportion of words in document $\displaystyle W$ that are currently assigned to topic $\displaystyle t$, and
++++ $\displaystyle p(w|t)$ = the proportion of assignments to topic $\displaystyle t$ over all documents that come from this word $\displaystyle w$. 
+
+Reassign $\displaystyle w$ a new topic, where we choose topic $\displaystyle t$ with probability $\displaystyle p(t|W)*p(w|t)$. It is worth noting that according to our generative model, this is essentially the probability that topic $\displaystyle t$ generated word $\displaystyle w$, so it makes sense that we resample the current word’s topic with this probability. (Also, I’m glossing over a couple of things here, in particular the use of priors/pseudocounts in these probabilities.)
++++ In other words, in this step, we’re assuming that all topic assignments except for the current word in question are correct, and then updating the assignment of the current word using our model of how documents are generated.
+
+4. After repeating the previous step a large number of times, you’ll eventually reach a roughly steady state where your assignments are pretty good. So use these assignments to estimate the topic mixtures of each document (by counting the proportion of words assigned to each topic within that document) and the words associated with each topic (by counting the proportion of words assigned to each topic overall).
+```
+
+(This explanation was taken from [here](https://wiki.ubc.ca/Course:CPSC522/Latent_Dirichlet_Allocation#cite_note-rcode-4))
+                                        
+```{r}
+labelTopics(cap_TM)
+```
+                                        
+FREX weights words by their overall frequency and how exclusive they are to the topic. Lift weights words by dividing by their frequency in other topics, therefore giving higher weight to words that appear less frequently in other topics. Similar to lift, score divides the log frequency of the word in the topic by the log frequency of the word in other topics [(Roberts et al. 2013)](https://cran.r-project.org/web/packages/stm/vignettes/stmVignette.pdf)). [Bischof and Airoldi (2012)](https://icml.cc/2012/papers/113.pdf) show the value of using FREX over the other measures. 
+
+You can use the `plot()` function to show the topics.
  
+```{r}
+plot(cap_TM, type = "labels", labeltype = "frex") # or prob, lift score
+```
+ 
+If you want to see a sample of a specific topic:
+   
+```{r}
+findThoughts(cap_TM, texts = texts(cap_corp)[docnames(dfm_toks_sub)], topics = 2)  
+```
+ 
+We can (should/must) run some diagnostics. There are two qualities that were are looking for in our model: semantic coherence and exclusivity. Exclusivity is base on the FREX labeling metrix. Semantic coherence is a creterion developed by Mimno et al. (2011) and it maximizes when the most probable words in a given topic frequently co-occur together. Mimno et al. (2011) show that the metric correlates well with human judgement of topic quality. Yet, it is fairly easy to obtain high semantic coherence so it is important to see it in tandem with exclusivity. Let's see how exclusive are the words in each topic:
+ 
+```{r}
+dotchart(exclusivity(cap_TM), labels = 1:10)
+```
+ 
+We can also see the semantic coherence of our topics --words a topic generates should co-occur often in the same document--:
+ 
+```{r}
+ dotchart(semanticCoherence(cap_TM,dfm_toks_sub), labels = 1:10)
+```
+ 
+We can also see the overall quality of our topic model:
+
+```{r}
+topicQuality(cap_TM,dfm_toks_sub)
+```
+
+On their own, both metrics are not really useful (what do those numbers even mean?). They are useful when we are looking for the "optimal" number of topics. 
+
+```{r}
+cap_TM_0 <- manyTopics(dfm_toks_sub,
+                       prevalence = ~ left_right,
+                       K = 10:15, runs=20)
+```
+
+Maybe we have some theory about the difference in topic prevalence across sides (or across parties). We can see the topic proportions in our topic model object:
+ 
+```{r}
+ head(cap_TM$theta)
+```
+ 
+ What about connecting this info to our dfm and see if there are differences in the proportion topic 3 is addressed by each side. 
+ 
+```{r}
+ cap_prev <- data.frame(topic3 = cap_TM$theta[,3], docvars(data_capitalismm_basic))
+ lmer_topic3 <- lmer(topic3 ~ (1 | album), data = cap_prev)
+ dotplot(ranef(lmer_topic3, condVar = TRUE))
+```
+ 
+We can do something similar with the `stm` function directly. We just need to specify the functional form and add the document variables. 
+ 
+ ```{r message=FALSE, warning=FALSE, include=FALSE}
+ cap_prev_2 <- stm(data_capitalismm_basic, K = 10,
+ prevalence = ~ year, 
+ data = docvars(data_capitalismm_basic),
+ seed = 1984)
+ ```
+ 
+ ```{r}
+ cap_topics <- estimateEffect(c(3) ~ year, cap_prev_2, docvars(data_capitalismm_basic)) # You can commpare topic 2 and 3 by changin the DV to c(2,3). 
+ plot(cap_topics, "year", labeltype = "prob", model = cap_prev_2)
+ ```
+ 
+# Analyzing a corpus: Scaling models 
+ 
+ So far, we have explored tools that provide information about the text. We can also use the text to obtain information about the authors. The **Wordfish** model developed by [Slapin and Proksch (2008)](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-5907.2008.00338.x), for example, positions the authors of documents in an (ideological) scale. How? In politics, the frequency with which politician $i$ uses word $k$ is drawn from a Poisson distribution:
+ 
+ $$ w_{ik} ∼ Poisson(\lambda _{ik})$$
+ $$\lambda_{ik} = exp(α_i +ψ_k +β_k ×θ_i)$$
+ 
+ with latent parameters:
+ 
+ - $α_i$ is the “loquaciousness” of politician $i$
+ - $ψ_k$ is the frequency of word k
+ - $β_k$ is the discrimination parameter of word $k$ 
+ - $θ_i$ is the politician's ideological position
+ 
+ The parameters of interest are the $θ$'s, the position of the parties in each election year, and the $β$'s because they allow us to analyze which words differentiate between party positions. 
+ 
+ The main assumption is that, indeed, $\lambda_{ik}$ is generated by the parameters previously described. Let's believe for a second that the peer-review system works and use the `textmodel_wordfish()` function to estimate the positions of our authorities in our corpus. 
+ 
+ 
+```{r}
+## I will subset my data since as it is there are too many documents:
+
+data_capitalism <- data_capitalism %>%
+  group_by(nameauth) %>%
+  mutate(count_auth = n())
+
+data_capitalism_sub <- data_capitalism[data_capitalism$count_auth>9,]
+
+## I will also concatenate all the tweets by author:
+data_capitalism_sub <- data_capitalism_sub %>%
+  group_by(nameauth) %>%
+  mutate(text_conca = paste0(text_clean, collapse = " "))
+
+## And finally drop dups:
+data_capitalism_sub <- data_capitalism_sub[!duplicated(data_capitalism_sub$nameauth),]
+
+cap_corp_sub <- corpus(data_capitalism_sub$text_conca,
+                       docvars = data.frame(author = data_capitalism_sub$nameauth,
+                        left_right = data_capitalism_sub$mem_name                   ))
+
+## Again my dfm
+cap_dmf_sub <- dfm(cap_corp_sub,
+ remove_punct = TRUE,
+ remove_numbers = TRUE,
+ remove = stopwords("english"),
+ stem = T) 
+
+cap_wfish <- textmodel_wordfish(cap_dmf_sub, dir = c(1,5)) #Does not really matter what the starting values are (dir=c()). At least, should not matter (other than the sign). 
+
+summary(cap_wfish)
+```
+ 
+This is an interesting exercise, since the reasoning behind **wordfish** is similar to the one behind network analysis. In network analysis, rather than looking at the text, we look at the connections made from Tweets and ReTweets. Let's see how both approaches comapare: 
+   
+```{r}
+cap_preds <- predict(cap_wfish, interval = "confidence")
+cap_pos <- data.frame(docvars(cap_corp_sub), 
+                       cap_preds$fit) %>%
+  arrange(fit)
+
+cap_pos <- cap_pos[order(cap_pos$fit),] # sort
+ 
+ggplot(cap_pos, aes(x = fit, y = 1:nrow(cap_pos), xmin = lwr, xmax = upr,color = left_right)) +
+   geom_point() +
+   geom_errorbarh(height = 0) +
+   scale_y_continuous(labels = cap_pos$docs, breaks = 1:nrow(cap_pos)) +
+   labs(x = "Position", y = "User") +
+   ggtitle("Estimated Positions")
+```
+ 
+ External validation, beibi! (?)
+   
+We can also turn around the scaling and see where each word is positioned on the same left-right scale as the authors. Here is the "Eiffel Tower" of scaled words:
+   
+```{r}
+wscores <- data.frame(word = cap_wfish$features,
+                        score = cap_wfish$beta,
+                        offset = cap_wfish$psi)
+
+  wscores <- wscores[wscores$score<5,]
+
+  testwords <- c("oligarch", "ecosystem", "undemocrat","plastic",
+                 "nation", "danger")
+
+  testscores <- wscores %>%
+    filter(word %in% testwords) %>%
+    arrange(score)
+
+  ggplot(wscores, aes(score, offset, label = word)) +
+    geom_point(color = "grey", alpha = 0.2) +
+    geom_text_repel(data = testscores, col = "black") +
+    geom_point(data = testscores) +
+    labs(x = "Word score (Left - Right)", y = "Offset") +
+    ggtitle("Estimated position of words",
+            subtitle = "Nota: Parameter offset es proporcional a la frecuencia de cada palabra.")
+```
+ 
+One important limitation of **wordfish** is that it assumes that all the documents are addressing the same topic, which is not necessarily the case. But there are scaling models for every taste (for example [this](https://www.cambridge.org/core/journals/political-analysis/article/measuring-political-positions-from-legislative-speech/35D8B53C4B7367185325C25BBE5F42B4) and [this](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1939-9162.2010.00006.x)), so this should not be too much of a problem. Still, it is incumbent upon the researcher to choose the model that best reflects the data and the needs. 
+ 
+## Analyzing a corpus: Natural Language Processing (NLP)
+ 
+ Working with natural language is not a solved problem. Language is messy and ever-changing and evolving. It takes us the better part of our childhood to learn it, "it is hard for the scientist who attempts to model the relevant phenomena, and it is hard for the engineer who attempts to build systems that deal with natural language input or output." [(Kornai 2008)](https://www.amazon.com/Mathematical-Linguistics-Information-Knowledge-Processing/dp/184996694X/ref=as_li_ss_tl?ie=UTF8&qid=1501196677&sr=8-1&keywords=Mathematical+Linguistics&linkCode=sl1&tag=inspiredalgor-20&linkId=e2c0e010d12b8955ced2d8cb75049a4d))
+
+"Statistical NLP aims to do statistical inference for the field of natural language. Statistical inference in general consists of taking some data (generated in accordance with some unknown probability distribution) and then making some inference about this distribution." [(Manning and Schutze 1999)](https://scholar.google.com/scholar?hl=en&as_sdt=0%2C44&q=Foundations+of+Statistical+Natural+Language+Processing&btnG=)
+
+NLP has been used for a while in software: word predictors in your phone, spell-checkers, spam filtering, etc. Its implementation in political science is still limited but the possibilities are vast. NLP makes it possible to move beyond simply establishing connections to investigating the state of relationships, from example by moving from 'whom' to 'who did what to whom.' [(Welbers et al. 2017)](https://kenbenoit.net/pdfs/text_analysis_in_R.pdf) 
+
+We will be testing three advanced NLP techniques: lemmatization, part-of-speech (POS) tagging, and dependency parsing. 
+
+### Lemmatization
+
+Much like stemming, but rather than cutting off words a dictionary is used to replace terms with their **lemmas**. More accurate at normalizing words with different verb forms (e.g. "gave" and "give"), which is a desirable quality when pre-processing a corpus.  
+
+### Part-of-speech tagging
+
+Syntactic categories for words, such as nouns, verbs, articles, and adjectives. 
+
+From [Welbers et al. 2017](https://kenbenoit.net/pdfs/text_analysis_in_R.pdf): "This information can be used to focus an analysis on certain types of grammar categories, for example, using nouns and proper names to measure similar events in news items (Welbers, et al., 2016), or using adjectives to focus on subjective language (De Smedt and Daelemans, 2012)." 
+
+```{r}
+cap_parsed <- spacy_parse(data_capitalism$song_lyrics)
+head(cap_parsed,25) 
+```
+
+### Dependency parsing
+
+Dependency parsing provides the syntactic relations between tokens. For example, "Kendrick" is related to "Lamar", thus recognizing "Kendrick Lamar" as a single entity. This can be particularly useful is you are searching for certain types of entities (e.g. locations, institutions, etc.) in a corpus. We can see the differences in the location mentioned by capitalists and anti-capitalists:
+  
+```{r}
+cap_entities <- entity_extract(cap_parsed)
+head(cap_entities,20)
+
+# Similar to extract but converts  multi-word entities into single “tokens”:
+# cap_entities <- entity_consolidate(cap_parsed_dep) 
+
+cap_persons <- cap_entities$entity[cap_entities$entity_type == "PERSON"]
+cap_persons <- unique(cap_persons)
+head(cap_persons,40)
+```
+
+In other contexts, spaCyR can recognize which subject is doing the action and which subject is on the receiving end. [Van Atteveldt et al. (2017)](http://vanatteveldt.com/p/atteveldt_clauses.pdf) use this to analyze who is attacking whom in news about the Gaza war. Here we can see something similar at work. Let's....  
+
+```{r}
+cap_parsed_dep <- spacy_parse(data_capitalism$song_lyrics, dependency = TRUE, entity = TRUE, lemma = FALSE, tag = TRUE)
+head(cap_parsed_dep,25) 
+```
+
+spacyR can also detect other [attributes](https://spacy.io/api/token#attributes) of tokens in a text:
+
+```{r}
+cap_parsed_att <- spacy_parse(data_capitalism$text, 
+            additional_attributes = c("like_num", "like_url"),
+            lemma = FALSE, pos = FALSE, entity = FALSE)
+head(cap_parsed_att,30)
+```
+## Other techniques not covered
+
+### Word networks:
+
+How are words and authors connected? 
+
+(Under construction)
+
+### Cosine-similarity
+
+How similar are two texts? If we think of each text as a vector in space, we can think of the angle between the two vectors as their "distance". The smaller the angle $\theta$, the closer and the more similar. If we had a measure of each text (e.g. TF-IDF) we could compute the cosine of the angle between them. How? Math. We must solve the dot product for the $\cos \theta$:
+
+$$ \vec{a} \cdot \vec{b} = \|\vec{a}\|\|\vec{b}\| \cos \theta $$
+$$ \cos \theta = \frac{\vec{a} \cdot \vec{b}}{\|\vec{a}\|\|\vec{b}\|} $$
+That is the cosine similarity formula. Cosine similarity will generate a metric that says how related are two documents by looking at the angle instead of the magnitude: 
+
+![Cosine similarity](http://blog.christianperone.com/wp-content/uploads/2013/09/cosinesimilarityfq1.png)
+
+### Word embeddings
+
+Word embeddings use a similar intuition as cosine similarities. By using vector representation of text, we can estimate how much alike two words are rather than treating words as single independent units (which is the case for dictionaries). 
+
+![Sentiment word embedding dimensions](https://www.tandfonline.com/na101/home/literatum/publisher/tandf/journals/content/hcms20/2018/hcms20.v012.i02-03/19312458.2018.1455817/20181105/images/large/hcms_a_1455817_f0002_oc.jpeg)
+We can train our models to predict how words are related. This requires a previously annotated training data set and some technical skills (and the pre-processing of the data). The [literature](https://www.tandfonline.com/doi/full/10.1080/19312458.2018.1455817?src=recsys) suggest that word embeddings can produce better results than similar "bag-of-words" approaches. It is particularly attractive since these models can be ran in most languages, helping us overcome the limitations from canned English-focused dictionaries. 
+
+## Goodbye Notes
+
+- If your are interested in text analysis, the internet is your best friend. I am also happy to help. And to be your friend. 
+- The resources suggested at the beginning will help you navigate text analysis and see how it fits within your research. 
+- Learn to scrape the interwebs.
+- Learn regex. 
+- Ask. 
+- Remember: 2 locations, 3 versions for all your data. Backups must be *Regular, Automatic, and Incremental*.
