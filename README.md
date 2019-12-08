@@ -6,6 +6,8 @@ We will learn the basic three-step process needed to set up research based on te
 
 Text-analysis opens the possibility to analyze a range of data that is plentiful and readily available, especially in politics. Politicians LOVE to speak. Bureaucrats LOVE to type. And we LOVE data. While computer-intensive, text-analysis is intuitive and, let's be honest, everybody loves a word cloud.<sup id="a1">[1](#f1)</sup> 
 
+**The .Rmd (R Markdown), .htlm, and .pdf files for the complete workshop can be [found here](https://github.com/vallejo086/Text-Analysis-Workshop-U-Houston/tree/master/Workshop).**
+
   - [Instructions to install the required software](#instructions-to-install-the-required-software)
     - [quanteda (for R)](#quanteda-for-r)
     - [spaCyR (for R)](#spacyr-for-r)
